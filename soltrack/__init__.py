@@ -22,25 +22,47 @@ the [SolTrack homepage](http://soltrack.sf.net).
 
 """
 
-from dataclasses import dataclass
-
 name = "soltrack"
 
-from .data import Constants, Parameters
-from .location import Location
-from .time import Time
-from .position import Position
-from .riseset import RiseSet
+from dataclasses import dataclass
+
+from .data      import Constants, Parameters
+from .location  import Location
+from .time      import Time
+from .position  import Position
+from .riseset   import RiseSet
 
 
 @dataclass
-class SolTrack:
+class SolTrack(Location, Time, Position, RiseSet):
     
-    cst       = Constants()
-    param     = Parameters()
     
-    loc       = Location()
-    time      = Time()
-    pos       = Position(param)
-    riseSet   = RiseSet(param)
-    
+    def __init__(self, geoLongitude,geoLatitude, useDegrees=None, useNorthEqualsZero=None, computeRefrEquatorial=None, computeDistance=None):
+        
+        """Construct a SolTrack object with specified geographical location and parameters (settings).
+        
+        Parameters:
+          geoLongitude (float):           Geographical longitude of the observer or installation (radians or degrees, depending on useDegrees).
+          geoLatitude (float):            Geographical latitude of the observer or installation (radians or degrees, depending on useDegrees).
+        
+          useDegrees (bool):              Input (geographic position) and output are in degrees, rather than radians.
+          useNorthEqualsZero (bool):      Azimuth: 0 = South, pi/2 (90deg) = West  ->  0 = North, pi/2 (90deg) = East.
+          computeRefrEquatorial (bool):   Compute refraction-corrected equatorial coordinates (Hour angle, declination).
+          computeDistance (bool):         Compute the distance to the Sun.
+        
+        Note:
+          The SolTrack class is a composition of the Location, Time, Position and RiseSet classes.
+        
+        """
+        
+        # Create Constants and Parameters objects:
+        self.cst       = Constants()
+        self.param     = Parameters()
+        self.param.setParameters(useDegrees, useNorthEqualsZero, computeRefrEquatorial, computeDistance)
+        
+        # Use composition to obtain the attributes from Location, Time, Position and RiseSet:
+        Location.__init__(self, geoLongitude, geoLatitude)  # Set the geographic location
+        Time.__init__(self)
+        Position.__init__(self)
+        RiseSet.__init__(self)
+        
